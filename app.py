@@ -71,7 +71,42 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, nullable=True, default=False)
     seeking_description = db.Column(db.String(), nullable=True)
+    @property
+    def complete(self):
+        doc = "The complete selfproperty."
+        past_shows = crud.get_past_venue_shows(self.id)
+        upcoming_shows = crud.get_upcoming_venue_shows(self.id)
+        return {
+        'venue_id': self.venue_id,
+        'name': self.name,
+        'genres': self.genres,
+        'state' : self.state,
+        'city' : self.city,
+        'address' : self.address,
+        'image_link': self.image_link,
+        'facebook_link' : self.facebook_link,
+        'phone' : self.phone,
+        'website': self.website,
+        'seeking_talent':self.seeking_talent,
+        'seeking_description' :self.seeking_description,
 
+        'past_shows': [{
+            'artist_id': show.artist.artist_id,
+            'artist_name': show.artist.name,
+            'artist_image_link': show.artist.image_link,
+            'start_time': show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for show in past_shows],
+        'upcoming_shows': [{
+            'artist_id': show.artist.artist_id,
+            'artist_name': show.artist.name,
+            'artist_image_link': show.artist.image_link,
+            'start_time': show.start_time.strftime("%m/%d/%Y, %H:%M")
+        } for show in upcoming_shows],
+        'past_shows_count': len(past_shows),
+        'upcoming_shows_count': len(upcoming_shows)
+        }
+    def __repr__(self):
+        return self.name
 
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -85,7 +120,8 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=True, default=False)
     seeking_description = db.Column(db.String(), nullable=True)
-
+    def __repr__(self):
+        return self.name
 
 
 #----------------------------------------------------------------------------#
@@ -126,10 +162,7 @@ def venues():
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
     term=request.form.get('search_term', '')
-
-    #results = Venue.query.filter(Venue.name.ilike('%term%')).all()
     results = Venue.query.filter(Venue.name.ilike('%'+term+'%'))
-
     return render_template('pages/search_venues.html', results=results, search_term=term)
 
 
@@ -140,9 +173,8 @@ def show_venue(venue_id):
     data = Venue.query.filter_by(venue_id=venue_id).first()
     past_shows= Artist.query.filter(Artist.venues.any(venue_id=venue_id)).all()
     upcoming_shows= Artist.query.filter(Artist.venues.any(venue_id=venue_id)).all()
-
+    #TODO return past and upcoming shows
     print(past_shows)
-
     print(upcoming_shows)
     data.past_shows=past_shows
     data.upcoming_shows=upcoming_shows
@@ -171,14 +203,6 @@ def create_venue_submission():
                 seeking_talent=False, genres=genres, seeking_description="", image_link="", facebook_link=form.facebook_link.data)
         db.session.add(venue)
         db.session.commit()
-        body['name']=venue.name
-        body['city']=venue.city
-        body['address']= venue.address
-        body['state']=venue.state
-        body['genres']=venue.genres
-        body['phone']=venue.phone
-        body['venue_id']=venue.venue_id
-        print(venue)
     except:
         error = True
         db.session.rollback()
@@ -225,18 +249,9 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-    # search for "band" should return "The Wild Sax Band".
-    response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
-    }
-    return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+    term=request.form.get('search_term', '')
+    results = Artist.query.filter(Artist.name.ilike('%'+term+'%'))
+    return render_template('pages/search_artists.html', results=results, search_term=term)
 
 
 @app.route('/artists/<int:artist_id>')
