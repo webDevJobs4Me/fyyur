@@ -74,8 +74,8 @@ class Venue(db.Model):
     @classmethod
     def complete(self):
         doc = "The complete selfproperty."
-        past_shows = Venue.query.join(Shows, Shows.c.venue_id==Venue.venue_id).join(Artist,Shows.c.artist_id==Artist.artist_id).filter(Venue.venue_id==Shows.c.start_time < datetime.today()).all()
-        upcoming_shows = Venue.query.join(Shows, Shows.venue_id==self.venue_id).join(Artist,Shows.artist_id==Artist.artist_id).filter(Shows.start_time > datetime.today()).all()
+        past_shows = v= Venue.query.filter(Venue.artists.any(artist_id=1)).all().filter(shows.start_time < datetime.today()).all()
+        upcoming_shows = Venue.query.join(Artist).filter(venue_id=self.venue_id).all().filter(shows.start_time > datetime.today()).all()
         return {
         'venue_id': self.venue_id,
         'name': self.name,
@@ -294,13 +294,21 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
     form = ArtistForm()
     artist = Artist.query.filter_by(artist_id=artist_id).first()
-
-    # TODO: populate form with fields from artist with ID <artist_id>
+    form.name.data=artist.name
+    form.genres.data=artist.genres
+    form.city.data=artist.city
+    form.state.data=artist.state
+    form.phone.data=artist.phone
+    form.facebook_link.data=artist.facebook_link
+    
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
+    error = False
+    form = ArtistForm(request.form)
+
     # TODO: take values from the form submitted, and update existing
     # artist record with ID <artist_id> using the new attributes
 
@@ -355,6 +363,24 @@ def create_artist_submission():
         flash('Artist ' + form['name'].data +' was successfully listed!')
         return redirect(url_for('show_artist', artist_id=artist.artist_id))
 
+@app.route('/artists/<artist_id>/delete', methods=['DELETE'])
+def delete_artist(artist_id):
+    try:
+        artist = Artist.query.filter_by(artist_id=artist_id).first()
+        db.session.delete(artist)
+        db.session.commit()
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    if error:
+        flash('An error occurred. Artist could not be deleted.')
+    else:
+        flash('Artist was successfully deleted!')
+
+    return redirect(url_for('index'))
 
 
 #  Shows
