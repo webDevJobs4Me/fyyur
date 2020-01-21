@@ -2,9 +2,9 @@
 {% block title %}Fyyur | Shows{% endblock %}
 {% block content %}
 <div class="row shows">
-    {%for show in shows %}
+    {%for show in shows |groupby('city')%}
     <div class="col-sm-4">
-      {{show.name}}
+      {{show.venue_id}}
         <!-- <div class="tile tile-show">
             <img src="{{ show.artist_image_link }}" alt="Artist Image" />
             <h4>{{ show.start_time|datetime('full') }}</h4>

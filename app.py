@@ -65,7 +65,7 @@ class Venue(db.Model):
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     genres = db.Column(ARRAY(db.String))
-    artists = db.relationship('Artist', secondary=Shows, cascade="all,delete", backref=db.backref('venues_from_artists', lazy='joined'))
+    artists = db.relationship('Artist', secondary='shows', cascade="all,delete", backref=db.backref('venues_from_artists', lazy='dynamic'))
     website = db.Column(db.String(500), nullable=True)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
@@ -120,7 +120,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=True, default=False)
     seeking_description = db.Column(db.String(), nullable=True)
-    venues = db.relationship('Venue', secondary=Shows, cascade="all,delete", backref=db.backref('artists_from_venues', lazy='joined'))
+    venues = db.relationship('Venue', secondary='shows', cascade="all,delete", backref=db.backref('artists_from_venues', lazy='dynamic'))
     def __repr__(self):
         return self.name
     @classmethod
@@ -335,10 +335,6 @@ def edit_artist_submission(artist_id):
         flash('Artist ' + form['name'].data +' was successfully updated!')
         return redirect(url_for('show_artist', artist_id=artist_id))
 
-    # TODO: take values from the form submitted, and update existing
-    # artist record with ID <artist_id> using the new attributes
-
-    return redirect(url_for('show_artist', artist_id=artist_id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -446,8 +442,11 @@ def delete_artist(artist_id):
 
 @app.route('/shows')
 def shows():
-    artistShows = Artist.query.join(Artist.venues_from_artists).filter_by(artist_id=1).all()
+    #artistShows = Artist.query.join(Artist.venues_from_artists).filter_by(artist_id=1).all()
+    artistShows=Venue.query.join(Artist,Venue.artists).order_by(Venue.city).all()
+    
 
+    #artistShows = Artist.query.filter(Artist.venues.any(venue_id=venues.venue_id)).all()
     # displays list of shows at /shows
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
@@ -465,7 +464,6 @@ def create_shows():
 def create_show_submission():
     form = ShowForm(request.form)
     body={};
-    genres=request.form.getlist('genres')
     try:
         show = Shows(artist_id=form.artist_id.data, venue_id=form.venue_id.data, start_time=form.start_time.data)
         db.session.add(show)
