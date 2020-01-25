@@ -2,15 +2,14 @@
 {% block title %}Fyyur | Shows{% endblock %}
 {% block content %}
 <div class="row shows">
-    {%for show in shows |groupby('city')%}
+    {% for show in shows %}
     <div class="col-sm-4">
-      {{show.venue_id}}
-        <!-- <div class="tile tile-show">
-            <img src="{{ show.artist_image_link }}" alt="Artist Image" />
-            <h4>{{ show.start_time|datetime('full') }}</h4>
-            <h5><a href="/artists/{{ show.artist_id }}">{{ show.artist_name }}</a></h5>
+       <div class="tile tile-show">
+            <img src="{{ show.Artist.image_link }}" alt="Artist Image" />
+            <h4>{{ show.Shows.start_time.strftime('%m-%d-%Y %H:%M')}}</h4>
+            <h5><a href="/artists/{{ show.Artist.artist_id }}">{{ show.Artist.name }}</a></h5>
             <p>playing at</p>
-            <h5><a href="/venues/{{ show.venue_id }}">{{ show.venue_name }}</a></h5> -->
+            <h5><a href="/venues/{{ show.Venue.venue_id }}">{{ show.Venue.name }}</a></h5>
         </div>
     </div>
     {% endfor %}

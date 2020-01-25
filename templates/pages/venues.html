@@ -1,8 +1,8 @@
 {% extends 'layouts/main.html' %}
 {% block title %}Fyyur | Venues{% endblock %}
 {% block content %}
-{% for area in areas |groupby('city') %}
-	<h3>{{ area[0] }}, {{ area[2] }}</h3>
+{% for area in areas |groupby('city')%}
+	<h3>{{ area.grouper}}, {{area.list[0].state }}</h3>
 		<ul class="items">
 
 			{% for venue in area.list %}
