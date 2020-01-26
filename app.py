@@ -436,8 +436,9 @@ def create_show_submission():
         flash('An error occurred. Show  could not be listed.')
     else:
         flash('Show was successfully listed!')
+    artistShows= db.session.query(Artist, Venue, Shows).join(Shows, Shows.artist_id ==Artist.artist_id).join(Venue,Venue.venue_id==Shows.venue_id)
+    return render_template('pages/shows.html', shows=artistShows)
 
-    return jsonify(body)
 
 @app.errorhandler(404)
 def not_found_error(error):
