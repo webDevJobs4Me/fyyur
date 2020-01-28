@@ -6,7 +6,7 @@
     <div class="col-sm-4">
        <div class="tile tile-show">
             <img src="{{ show.Artist.image_link }}" alt="Artist Image" />
-            <h4>{{ show.Shows.start_time.strftime('%m-%d-%Y %H:%M')}}</h4>
+            <h4>{{ show.Shows.start_time.strftime('%m-%d-%Y %H:%M') }}</h4>
             <h5><a href="/artists/{{ show.Artist.artist_id }}">{{ show.Artist.name }}</a></h5>
             <p>playing at</p>
             <h5><a href="/venues/{{ show.Venue.venue_id }}">{{ show.Venue.name }}</a></h5>
